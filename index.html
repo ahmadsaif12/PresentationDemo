@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with Company Data</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0f1115;
+            --bg-secondary: #181a1f;
+            --bg-tertiary: #1f2228;
+            --bg-card: #1f2228;
+            --border: #2d3139;
+            --border-hover: #3d424c;
+            --text-primary: #e8eaed;
+            --text-secondary: #9aa4b2;
+            --text-muted: #6b7280;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --accent-light: #1e3a5f;
+            --success: #10b981;
+            --success-light: #064e3b;
+            --warning: #f59e0b;
+            --warning-light: #78350f;
+            --error: #ef4444;
+            --error-light: #7f1d1d;
+            --shadow: 0 4px 24px rgba(0,0,0,0.4);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+            --radius: 10px;
+            --radius-sm: 6px;
+            --transition: 150ms ease;
+            --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f1f5f9;
+            --bg-card: #ffffff;
+            --border: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-light: #dbeafe;
+            --success: #059669;
+            --success-light: #d1fae5;
+            --warning: #d97706;
+            --warning-light: #fef3c7;
+            --error: #dc2626;
+            --error-light: #fee2e2;
+            --shadow: 0 4px 24px rgba(0,0,0,0.08);
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body { height: 100%; }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            font-size: 14px;
+            -webkit-font-smoothing: antialiased;
+            overflow: hidden;
+        }
+
+        /* Screen management */
+        .screen { display: none; height: 100vh; overflow: hidden; }
+        .screen.active { display: flex; flex-direction: column; }
+
+        /* ============================================================
+           SCREEN 1: API Settings
+           ============================================================ */
+        .screen-settings {
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .settings-container {
+            width: 100%;
+            max-width: 720px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .settings-header {
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .settings-header h1 {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .settings-header .badge {
+            font-size: 11px;
+            font-weight: 500;
+            padding: 3px 8px;
+            border-radius: 999px;
+            background: var(--accent-light);
+            color: var(--accent);
+        }
+
+        .settings-body { padding: 24px; overflow-y: auto; flex: 1; }
+
+        .section { margin-bottom: 28px; }
+        .section:last-of-type { margin-bottom: 0; }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title svg { flex-shrink: 0; }
+
+        .field-group { margin-bottom: 16px; }
+        .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .input-wrapper { position: relative; }
+
+        input[type="text"], input[type="password"], input[type="number"], select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-family: var(--font-sans);
+            font-size: 13px;
+            transition: border-color var(--transition), box-shadow var(--transition);
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-light);
+        }
+
+        input::placeholder { color: var(--text-muted); }
+        input[readonly] { background: var(--bg-tertiary); color: var(--text-secondary); cursor: not-allowed; }
+
+        .input-hint {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .input-error { color: var(--error); font-size: 11px; margin-top: 4px; display: none; }
+        .input-error.visible { display: block; }
+
+        .url-builder {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 16px;
+            margin-top: 12px;
+        }
+
+        .url-builder .label { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .url-builder .result { font-family: var(--font-mono); font-size: 12px; color: var(--text-primary); word-break: break-all; padding: 10px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; min-height: 38px; display: flex; align-items: center; }
+        .url-builder .result.editable { cursor: text; }
+        .url-builder .result .editable-text { outline: none; }
+
+        .advanced-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background var(--transition);
+        }
+        .advanced-toggle:hover { background: var(--border); }
+        .advanced-toggle input { display: none; }
+        .advanced-toggle .icon { transition: transform var(--transition); }
+        .advanced-toggle[aria-expanded="true"] .icon { transform: rotate(180deg); }
+        .advanced-content { display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); animation: slideDown 200ms ease; }
+        .advanced-content.visible { display: block; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+        .saved-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            color: var(--success);
+            background: var(--success-light);
+            padding: 3px 8px;
+            border-radius: 999px;
+            margin-left: 8px;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: var(--font-sans);
+            border-radius: var(--radius-sm);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all var(--transition);
+            text-decoration: none;
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border-color: var(--border); }
+        .btn-secondary:hover:not(:disabled) { background: var(--border); }
+        .btn-ghost { background: transparent; color: var(--text-secondary); }
+        .btn-ghost:hover:not(:disabled) { color: var(--text-primary); background: var(--bg-tertiary); }
+        .btn-danger { background: var(--error-light); color: var(--error); border-color: var(--error); }
+        .btn-danger:hover:not(:disabled) { background: var(--error); color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn-lg { padding: 12px 24px; font-size: 14px; }
+        .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); }
+
+        .config-switcher {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
+        }
+        .config-switcher select { flex: 1; max-width: 300px; }
+        .config-switcher .btn { flex-shrink: 0; }
+
+        /* ============================================================
+           SCREEN 2: Welcome
+           ============================================================ */
+        .screen-welcome {
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+        }
+
+        .welcome-container {
+            width: 100%;
+            max-width: 720px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .welcome-header {
+            padding: 32px;
+            border-bottom: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .welcome-header .company-name { font-size: 28px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+        .welcome-header .status { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--success); }
+        .welcome-header .status::before { content: ''; width: 8px; height: 8px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .welcome-body { padding: 32px; overflow-y: auto; flex: 1; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-bottom: 28px; }
+        .stat-card { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 20px; text-align: center; transition: border-color var(--transition); }
+        .stat-card:hover { border-color: var(--border-hover); }
+        .stat-card .value { font-size: 28px; font-weight: 700; color: var(--text-primary); line-height: 1.2; font-family: var(--font-mono); }
+        .stat-card .label { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+        .summary-card { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 20px; margin-bottom: 28px; }
+        .summary-card h3 { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .summary-card p { color: var(--text-primary); line-height: 1.7; }
+
+        .questions-card { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 20px; margin-bottom: 28px; }
+        .questions-card h3 { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .questions-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 10px; }
+        .question-item { padding: 12px 14px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; color: var(--text-primary); cursor: pointer; transition: all var(--transition); display: flex; align-items: center; gap: 10px; }
+        .question-item:hover { border-color: var(--accent); background: var(--accent-light); }
+        .question-item svg { flex-shrink: 0; color: var(--accent); }
+
+        .welcome-footer { padding: 24px 32px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 12px; align-items: center; }
+        .welcome-footer .btn { width: 100%; max-width: 320px; }
+        .welcome-footer .link { color: var(--accent); text-decoration: none; font-size: 13px; }
+        .welcome-footer .link:hover { text-decoration: underline; }
+
+        /* ============================================================
+           SCREEN 3: Chat
+           ============================================================ */
+        .screen-chat { flex-direction: column; }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 20px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .chat-header-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 200px; }
+        .chat-header-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+        .company-badge { display: flex; align-items: center; gap: 8px; padding: 6px 12px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 999px; font-size: 13px; font-weight: 500; cursor: pointer; transition: all var(--transition); }
+        .company-badge:hover { border-color: var(--border-hover); }
+        .company-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); }
+        .company-badge svg { color: var(--text-muted); }
+
+        .header-control { display: flex; align-items: center; gap: 8px; }
+        .header-control label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+        .header-control select, .header-control input { padding: 6px 10px; font-size: 12px; min-width: 140px; }
+
+        .chat-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        .chat-messages { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 20px; }
+        .chat-messages::-webkit-scrollbar { width: 6px; }
+        .chat-messages::-webkit-scrollbar-track { background: transparent; }
+        .chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        .chat-messages::-webkit-scrollbar-thumb:hover { background: var(--border-hover); }
+
+        .message { display: flex; gap: 12px; max-width: 100%; animation: fadeIn 200ms ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .message.user { flex-direction: row-reverse; }
+        .message .avatar { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px; }
+        .message.user .avatar { background: var(--accent); color: white; }
+        .message.assistant .avatar { background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border); }
+        .message .content { flex: 1; min-width: 0; padding: 4px 0; }
+        .message .meta { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+        .message.user .meta { justify-content: flex-end; }
+        .message .text { color: var(--text-primary); line-height: 1.7; white-space: pre-wrap; word-wrap: break-word; font-size: 14px; }
+
+        /* Markdown rendering */
+        .message .text h1, .message .text h2, .message .text h3 { font-weight: 600; margin: 12px 0 8px; color: var(--text-primary); }
+        .message .text h1 { font-size: 18px; }
+        .message .text h2 { font-size: 16px; }
+        .message .text h3 { font-size: 14px; }
+        .message .text p { margin: 8px 0; }
+        .message .text strong { font-weight: 600; }
+        .message .text em { font-style: italic; }
+        .message .text code { font-family: var(--font-mono); font-size: 12px; background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px; }
+        .message .text pre { background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px; overflow-x: auto; margin: 8px 0; }
+        .message .text pre code { background: transparent; padding: 0; font-size: 12px; line-height: 1.6; }
+        .message .text ul, .message .text ol { margin: 8px 0; padding-left: 24px; }
+        .message .text li { margin: 4px 0; }
+        .message .text blockquote { border-left: 3px solid var(--accent); padding-left: 12px; margin: 8px 0; color: var(--text-secondary); font-style: italic; }
+        .message .text a { color: var(--accent); text-decoration: none; }
+        .message .text a:hover { text-decoration: underline; }
+        .message .text hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+        /* Tables */
+        .table-wrapper { overflow-x: auto; margin: 12px 0; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+        .message table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: var(--font-sans); min-width: 600px; }
+        .message th, .message td { padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        .message th { background: var(--bg-tertiary); font-weight: 600; color: var(--text-primary); white-space: nowrap; cursor: pointer; user-select: none; position: sticky; top: 0; z-index: 1; }
+        .message th:hover { background: var(--border); }
+        .message th.sorted-asc::after { content: ' ▲'; font-size: 10px; }
+        .message th.sorted-desc::after { content: ' ▼'; font-size: 10px; }
+        .message td { color: var(--text-primary); }
+        .message tr:hover td { background: var(--bg-tertiary); }
+        .message td.number { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+        .message td.date { font-family: var(--font-mono); white-space: nowrap; }
+        .table-search { padding: 8px 12px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); display: flex; gap: 8px; align-items: center; font-size: 12px; }
+        .table-search input { flex: 1; padding: 6px 10px; font-size: 12px; }
+
+        /* Charts */
+        .chart-wrapper { margin: 12px 0; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+        .chart-header { padding: 10px 12px; background: var(--bg-tertiary); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; font-size: 12px; font-weight: 500; }
+        .chart-container { padding: 16px; min-height: 280px; position: relative; }
+
+        /* Collapsible "How extracted" */
+        .extraction { margin-top: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; }
+        .extraction summary { padding: 10px 14px; background: var(--bg-tertiary); cursor: pointer; font-size: 12px; font-weight: 500; color: var(--text-secondary); display: flex; align-items: center; gap: 8px; list-style: none; }
+        .extraction summary::-webkit-details-marker { display: none; }
+        .extraction summary::after { content: ''; width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid var(--text-muted); margin-left: auto; transition: transform var(--transition); }
+        .extraction[open] summary::after { transform: rotate(180deg); }
+        .extraction-content { padding: 14px; font-size: 12px; line-height: 1.7; }
+        .extraction-content pre { background: var(--bg-primary); border: 1px solid var(--border); border-radius: 6px; padding: 10px; overflow-x: auto; margin: 8px 0; font-family: var(--font-mono); font-size: 11px; }
+        .extraction-content code { font-family: var(--font-mono); font-size: 11px; background: var(--bg-tertiary); padding: 1px 4px; border-radius: 3px; }
+
+        /* Message actions */
+        .message-actions { display: flex; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); opacity: 0; transition: opacity var(--transition); }
+        .message:hover .message-actions { opacity: 1; }
+        .message-actions .btn { padding: 6px 10px; font-size: 11px; }
+
+        /* Typing indicator */
+        .typing-indicator { display: flex; align-items: center; gap: 8px; padding: 8px 12px; color: var(--text-muted); font-size: 12px; }
+        .typing-indicator .dots { display: flex; gap: 3px; }
+        .typing-indicator .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: bounce 1.4s infinite ease-in-out both; }
+        .typing-indicator .dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-indicator .dot:nth-child(2) { animation-delay: -0.16s; }
+        @keyframes bounce { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
+
+        /* Chat suggestions (additive) */
+        .chat-suggestions { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 20px; background: var(--bg-secondary); border-top: 1px solid var(--border); max-width: 1200px; margin: 0 auto; width: 100%; }
+        .chat-suggestions .chip { padding: 6px 12px; font-size: 12px; border-radius: 999px; background: var(--bg-primary); border: 1px solid var(--border); color: var(--text-primary); cursor: pointer; transition: all var(--transition); white-space: nowrap; max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
+        .chat-suggestions .chip:hover { border-color: var(--accent); background: var(--accent-light); }
+        .chat-suggestions .chip-label { font-size: 11px; color: var(--text-muted); align-self: center; margin-right: 4px; }
+
+        /* Chat input */
+        .chat-input-area { padding: 16px 20px; background: var(--bg-secondary); border-top: 1px solid var(--border); }
+        .chat-input-wrapper { display: flex; align-items: flex-end; gap: 10px; max-width: 1200px; margin: 0 auto; }
+        .chat-input-wrapper textarea { flex: 1; min-height: 48px; max-height: 160px; padding: 12px 16px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text-primary); font-family: var(--font-sans); font-size: 14px; line-height: 1.5; resize: none; transition: border-color var(--transition); }
+        .chat-input-wrapper textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-light); }
+        .chat-input-wrapper textarea::placeholder { color: var(--text-muted); }
+        .chat-input-btn { width: 48px; height: 48px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; background: var(--accent); color: white; border: none; cursor: pointer; transition: background var(--transition); flex-shrink: 0; }
+        .chat-input-btn:hover { background: var(--accent-hover); }
+        .chat-input-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .chat-input-btn.secondary { background: var(--bg-tertiary); color: var(--text-secondary); }
+        .chat-input-btn.secondary:hover { background: var(--border); color: var(--text-primary); }
+        .input-hints { display: flex; gap: 16px; margin-top: 8px; font-size: 11px; color: var(--text-muted); max-width: 1200px; margin-left: auto; margin-right: auto; padding-left: 58px; }
+
+        /* ============================================================
+           Modals
+           ============================================================ */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; padding: 24px; z-index: 1000; animation: fadeIn 200ms ease; }
+        .modal-overlay.visible { display: flex; }
+        .modal { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); width: 100%; max-width: 560px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column; animation: slideUp 200ms ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .modal-header h2 { font-size: 16px; font-weight: 600; }
+        .modal-close { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; background: transparent; border: 1px solid var(--border); color: var(--text-secondary); cursor: pointer; transition: all var(--transition); }
+        .modal-close:hover { background: var(--bg-tertiary); color: var(--text-primary); border-color: var(--border-hover); }
+        .modal-body { padding: 24px; overflow-y: auto; }
+        .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+
+        /* Test connection modal */
+        .test-result { padding: 16px; background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 16px; }
+        .test-result.success { border-color: var(--success); background: var(--success-light); }
+        .test-result.error { border-color: var(--error); background: var(--error-light); }
+        .test-result .row { display: flex; justify-content: space-between; margin: 6px 0; font-size: 13px; }
+        .test-result .row .label { color: var(--text-secondary); }
+        .test-result .row .value { font-weight: 500; color: var(--text-primary); font-family: var(--font-mono); }
+        .test-result .columns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+        .test-result .column-tag { font-size: 11px; padding: 3px 8px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 999px; color: var(--text-secondary); }
+        .test-result .sample-table { width: 100%; font-size: 11px; margin-top: 12px; overflow-x: auto; }
+        .test-result .sample-table th, .test-result .sample-table td { padding: 6px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+        .test-result .sample-table th { background: var(--bg-primary); font-weight: 600; }
+
+        /* Mapping editor modal */
+        .mapping-table { width: 100%; font-size: 12px; border-collapse: collapse; }
+        .mapping-table th, .mapping-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+        .mapping-table th { background: var(--bg-tertiary); font-weight: 600; }
+        .mapping-table input { width: 100%; padding: 6px 8px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 4px; font-size: 12px; color: var(--text-primary); }
+        .mapping-table select { width: 100%; padding: 6px 8px; background: var(--bg-primary); border: 1px solid var(--border); border-radius: 4px; font-size: 12px; color: var(--text-primary); }
+        .mapping-table .role-badge { font-size: 10px; padding: 2px 6px; border-radius: 999px; font-weight: 500; }
+        .mapping-table .role-opening_balance { background: var(--success-light); color: var(--success); }
+        .mapping-table .role-sales { background: #dbeafe; color: var(--accent); }
+        .mapping-table .role-collection { background: #fef3c7; color: var(--warning); }
+        .mapping-table .role-purchase { background: #fce7f3; color: #db2777; }
+        .mapping-table .role-payment { background: #e0e7ff; color: #4f46e5; }
+        .mapping-table .role-journal { background: #f3f4f6; color: #374151; }
+        .mapping-table .role-other { background: var(--bg-tertiary); color: var(--text-muted); }
+        .mapping-table .kind-badge { font-size: 10px; padding: 2px 6px; border-radius: 999px; font-weight: 500; }
+        .mapping-table .kind-asset { background: #dbeafe; color: var(--accent); }
+        .mapping-table .kind-liability { background: #fef3c7; color: var(--warning); }
+        .mapping-table .kind-equity { background: #fce7f3; color: #db2777; }
+        .mapping-table .kind-income { background: #d1fae5; color: var(--success); }
+        .mapping-table .kind-expense { background: #fee2e2; color: var(--error); }
+        .mapping-table .kind-other { background: var(--bg-tertiary); color: var(--text-muted); }
+
+        /* Export modal */
+        .export-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+        .export-option { padding: 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-tertiary); text-align: center; cursor: pointer; transition: all var(--transition); }
+        .export-option:hover { border-color: var(--accent); background: var(--accent-light); }
+        .export-option svg { width: 28px; height: 28px; color: var(--accent); margin-bottom: 8px; }
+        .export-option span { font-size: 12px; font-weight: 500; color: var(--text-primary); }
+
+        /* Error toast */
+        .toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 2000; display: flex; flex-direction: column; gap: 8px; }
+        .toast { padding: 12px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); box-shadow: var(--shadow); display: flex; align-items: center; gap: 10px; font-size: 13px; animation: slideIn 300ms ease; max-width: 400px; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+        .toast.error { border-left: 4px solid var(--error); }
+        .toast.success { border-left: 4px solid var(--success); }
+        .toast.warning { border-left: 4px solid var(--warning); }
+        .toast.info { border-left: 4px solid var(--accent); }
+        .toast .close { margin-left: auto; color: var(--text-muted); cursor: pointer; }
+
+        /* Empty state */
+        .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 40px; text-align: center; color: var(--text-muted); }
+        .empty-state svg { width: 64px; height: 64px; margin-bottom: 16px; opacity: 0.5; }
+        .empty-state h3 { font-size: 16px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+        .empty-state p { font-size: 13px; max-width: 320px; line-height: 1.6; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .field-row { grid-template-columns: 1fr; }
+            .chat-header { flex-direction: column; align-items: stretch; }
+            .chat-header-right { justify-content: space-between; }
+            .header-control { flex: 1; }
+            .header-control select, .header-control input { min-width: 0; flex: 1; }
+            .questions-list { grid-template-columns: 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .message .text { font-size: 13px; }
+            .welcome-header { padding: 24px; }
+            .welcome-body { padding: 24px; }
+            .welcome-footer { padding: 20px 24px; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr; }
+            .btn-group { flex-direction: column; }
+            .btn-group .btn { width: 100%; }
+        }
+
+        /* Utility */
+        .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- SCREEN 1: Settings -->
+    <div class="screen screen-settings active" id="screenSettings">
+        <div class="settings-container">
+            <div class="settings-header">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: var(--accent);">
+                    <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
+                </svg>
+                <h1>API Settings</h1>
+                <span class="badge" id="screenIndicator">Step 1 of 3</span>
+            </div>
+
+            <div class="settings-body">
+                <!-- Config Switcher -->
+                <div class="config-switcher" id="configSwitcher" style="display: none;">
+                    <label for="configSelect" class="sr-only">Select Configuration</label>
+                    <select id="configSelect" onchange="switchConfig(this.value)">
+                        <option value="">Select a saved configuration...</option>
+                    </select>
+                    <button class="btn btn-secondary btn-sm" onclick="showNewConfigForm()">+ New</button>
+                </div>
+
+                <form id="settingsForm" novalidate>
+                    <!-- Base URL & Database -->
+                    <div class="section">
+                        <h2 class="section-title">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/><path d="M15 5v4"/><path d="M15 15v4"/><path d="M12 17h.01"/></svg>
+                            Connection
+                        </h2>
+
+                        <div class="field-group">
+                            <label for="baseUrl">API Base URL <span style="color: var(--error);">*</span></label>
+                            <div class="input-wrapper">
+                                <input type="text" id="baseUrl" name="baseUrl" placeholder="https://api.example.com/financereport/xyz?" required>
+                            </div>
+                            <p class="input-hint">Base URL of your company API. If no scheme, http:// is assumed.</p>
+                        </div>
+
+                        <div class="field-row">
+                            <div class="field-group">
+                                <label for="database">Database Name <span style="color: var(--error);">*</span></label>
+                                <div class="input-wrapper">
+                                    <input type="text" id="database" name="database" placeholder="GMPL8384" required>
+                                </div>
+                            </div>
+                            <div class="field-group">
+                                <label for="paramName">Parameter Name</label>
+                                <div class="input-wrapper">
+                                    <input type="text" id="paramName" name="paramName" value="dbname" placeholder="dbname">
+                                </div>
+                                <p class="input-hint">Query parameter for database (default: dbname)</p>
+                            </div>
+                        </div>
+
+                        <!-- URL Builder Preview -->
+                        <div class="url-builder">
+                            <div class="label">Setting Result (Auto-generated Final URL)</div>
+                            <div class="result" id="finalUrl" contenteditable="true" spellcheck="false"></div>
+                            <p class="input-hint" style="margin-top: 8px;">Joining rules: <code>? → base + "dbname=" + DB</code> | <code>no ? → base + "?dbname=" + DB</code> | <code>{db} → replace placeholder</code>. Editable if needed.</p>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Settings -->
+                    <div class="section">
+                        <div class="advanced-toggle" id="advancedToggle" onclick="toggleAdvanced()" aria-expanded="false">
+                            <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                            <span>Advanced (Authentication format, Timeout, OpenAI)</span>
+                        </div>
+                        <div class="advanced-content" id="advancedContent">
+                            <p class="input-hint">API and OpenAI keys stay on the server (saved configuration or environment). They are not sent to, displayed in, or logged by this page.</p>
+                            <div class="field-row">
+                                <div class="field-group">
+                                    <label for="apiKeyHeader">Header Name</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="apiKeyHeader" name="apiKeyHeader" value="X-API-Key" placeholder="X-API-Key">
+                                    </div>
+                                </div>
+                                <div class="field-group">
+                                    <label for="apiKeyPrefix">Prefix</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="apiKeyPrefix" name="apiKeyPrefix" value="" placeholder="Bearer ">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="field-group">
+                                <label for="timeout">Request Timeout (seconds)</label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="timeout" name="timeout" value="30" min="5" max="120">
+                                </div>
+                            </div>
+                            <hr style="border-color: var(--border); margin: 16px 0;">
+                            <div class="field-row">
+                                <div class="field-group">
+                                    <label for="openaiModel">Model</label>
+                                    <div class="input-wrapper">
+                                        <select id="openaiModel" name="openaiModel">
+                                            <option value="auto">auto</option>
+                                            <option value="gpt-4o-mini">gpt-4o-mini (fast, cheap)</option>
+                                            <option value="gpt-4o">gpt-4o (stronger)</option>
+                                            <option value="gpt-4-turbo">gpt-4-turbo</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="field-group">
+                                    <label for="openaiBase">Base URL</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="openaiBase" name="openaiBase" value="https://api.openai.com/v1" placeholder="https://api.openai.com/v1">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Config Name -->
+                    <div class="section">
+                        <div class="field-group">
+                            <label for="configName">Configuration Name</label>
+                            <div class="input-wrapper">
+                                <input type="text" id="configName" name="configName" placeholder="My Company (auto-generated if empty)">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-secondary" onclick="testConnection()">Test Connection</button>
+                        <button type="submit" class="btn btn-primary btn-lg">Save & Continue</button>
+                    </div>
+                    <p class="input-hint" id="configSaveResult" role="status" aria-live="polite"></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 2: Welcome -->
+    <div class="screen screen-welcome" id="screenWelcome">
+        <div class="welcome-container">
+            <div class="welcome-header">
+                <h1 class="company-name" id="welcomeCompanyName">Company Name</h1>
+                <div class="status">Connected</div>
+            </div>
+
+            <div class="welcome-body">
+                <div class="stats-grid" id="statsGrid">
+                    <!-- Populated by JS -->
+                </div>
+
+                <div class="summary-card">
+                    <h3>Data Summary</h3>
+                    <p id="dataSummary">Loading...</p>
+                </div>
+
+                <div class="questions-card">
+                    <h3>Suggested Questions</h3>
+                    <div class="questions-list" id="questionsList">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="welcome-footer">
+                <button class="btn btn-primary btn-lg" onclick="goToChat()">Start Chat</button>
+                <a href="#" class="link" onclick="showScreen('settings'); return false;">Change Settings</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN 3: Chat -->
+    <div class="screen screen-chat" id="screenChat">
+        <header class="chat-header">
+            <div class="chat-header-left">
+                <div class="company-badge" id="chatCompanyBadge" onclick="showConfigSwitcher()">
+                    <span class="dot"></span>
+                    <span id="chatCompanyName">Company</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+            </div>
+            <div class="chat-header-right">
+                <div class="header-control">
+                    <label for="asOfDate">As of</label>
+                    <input type="date" id="asOfDate" onchange="updateAsOfDate()">
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="refreshData()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="newChat()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                    <span>New Chat</span>
+                </button>
+                <button class="btn btn-ghost btn-sm" onclick="toggleTheme()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="themeIconSun"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="themeIconMoon" style="display:none;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                </button>
+            </div>
+        </header>
+
+        <main class="chat-main">
+            <div class="chat-messages" id="chatMessages">
+                <div class="empty-state" id="emptyState">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <h3>Start a conversation</h3>
+                    <p>Ask anything about your company data — balances, statements, trends, comparisons, financial reports, and more.</p>
+                </div>
+            </div>
+
+            <div class="chat-suggestions" id="chatSuggestions" aria-label="Suggested questions"></div>
+
+            <div class="chat-input-area">
+                <div class="chat-input-wrapper">
+                    <textarea id="chatInput" placeholder="Ask about balances, statements, trends, comparisons... (Enter to send, Shift+Enter for new line)" onkeydown="handleInputKeydown(event)"></textarea>
+                    <button class="chat-input-btn" id="voiceBtn" onclick="toggleVoice()" title="Voice input">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+                    </button>
+                    <button class="chat-input-btn secondary" id="sendBtn" onclick="sendMessage()" aria-label="Send message">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                    </button>
+                </div>
+                <div class="input-hints">
+                    <span>Enter = Send</span>
+                    <span>Shift+Enter = New line</span>
+                    <span>🎤 = Voice</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL: Test Connection Result -->
+    <div class="modal-overlay" id="modalTest" onclick="closeModal(event, 'modalTest')">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Test Connection Result</h2>
+                <button class="modal-close" onclick="closeModal(null, 'modalTest')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+            <div class="modal-body" id="modalTestBody">
+                <!-- Populated by JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="closeModal(null, 'modalTest')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Mapping Editor -->
+    <div class="modal-overlay" id="modalMapping" onclick="closeModal(event, 'modalMapping')">
+        <div class="modal" style="max-width: 800px;" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Detected Mappings (Edit & Confirm)</h2>
+                <button class="modal-close" onclick="closeModal(null, 'modalMapping')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+            <div class="modal-body" style="max-height: 60vh;">
+                <div style="margin-bottom: 20px;">
+                    <h3 style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; text-transform: uppercase;">Source Codes → Roles</h3>
+                    <table class="mapping-table" id="sourceMappingTable">
+                        <thead><tr><th>Source Code</th><th>Detected Role</th><th>Count</th><th>Dr Total</th><th>Cr Total</th><th>Sample Narrations</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div>
+                    <h3 style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-bottom: 12px; text-transform: uppercase;">Groups → Kinds</h3>
+                    <table class="mapping-table" id="groupMappingTable">
+                        <thead><tr><th>Group Name</th><th>Detected Kind</th><th>Count</th><th>Dr Total</th><th>Cr Total</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal(null, 'modalMapping')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveMappings()">Save Mappings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Export Options -->
+    <div class="modal-overlay" id="modalExport" onclick="closeModal(event, 'modalExport')">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Export Table</h2>
+                <button class="modal-close" onclick="closeModal(null, 'modalExport')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+            <div class="modal-body">
+                <p style="color: var(--text-secondary); margin-bottom: 16px;">Choose export format:</p>
+                <div class="export-options" id="exportOptions">
+                    <div class="export-option" data-format="csv"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span>CSV</span></div>
+                    <div class="export-option" data-format="xlsx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg><span>Excel</span></div>
+                    <div class="export-option" data-format="docx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Word</span></div>
+                    <div class="export-option" data-format="pptx"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/></svg><span>PowerPoint</span></div>
+                    <div class="export-option" data-format="pdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>PDF</span></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal(null, 'modalExport')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Config Switcher -->
+    <div class="modal-overlay" id="modalConfigSwitcher" onclick="closeModal(event, 'modalConfigSwitcher')">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h2>Switch Company</h2>
+                <button class="modal-close" onclick="closeModal(null, 'modalConfigSwitcher')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+            <div class="modal-body" id="configSwitcherList">
+                <!-- Populated by JS -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal(null, 'modalConfigSwitcher')">Cancel</button>
+                <button class="btn btn-primary" onclick="addNewConfigFromSwitcher()">+ New Configuration</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // State Management
+        // ============================================================
+        const state = {
+            currentScreen: 'settings',
+            currentConfigId: '',
+            sessionId: '',
+            asOfDate: '',
+            isRecording: false,
+            recognition: null,
+            lastTableData: null,
+            // Additive: optional ledger/party name (GlDesc) to focus chat answers on. Empty = unchanged behavior.
+            currentGlDesc: '',
+            theme: localStorage.getItem('theme') || 'dark'
+        };
+
+        // ============================================================
+        // Utility Functions
+        // ============================================================
+        function $(id) { return document.getElementById(id); }
+        function showToast(message, type = 'info') {
+            const container = $('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<span>${message}</span><button class="close" onclick="this.parentElement.remove()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        }
+        function formatNumber(num) { return new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num); }
+        function formatDate(iso) { if (!iso) return ''; const [y,m,d] = iso.split('-'); return `${d}/${m}/${y}`; }
+        function escapeHtml(text) { const div = document.createElement('div'); div.textContent = text; return div.innerHTML; }
+
+        // ============================================================
+        // Screen Navigation
+        // ============================================================
+        function showScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            $(`screen${screenName.charAt(0).toUpperCase() + screenName.slice(1)}`).classList.add('active');
+            state.currentScreen = screenName;
+        }
+
+        // ============================================================
+        // Theme
+        // ============================================================
+        function applyTheme() {
+            document.documentElement.setAttribute('data-theme', state.theme);
+            const sunIcon = $('themeIconSun');
+            const moonIcon = $('themeIconMoon');
+            if (sunIcon) sunIcon.style.display = state.theme === 'dark' ? 'block' : 'none';
+            if (moonIcon) moonIcon.style.display = state.theme === 'light' ? 'block' : 'none';
+        }
+        function toggleTheme() {
+            state.theme = state.theme === 'dark' ? 'light' : 'dark';
+            localStorage.setItem('theme', state.theme);
+            applyTheme();
+        }
+
+        // ============================================================
+        // Settings Screen
+        // ============================================================
+        function updateFinalUrl() {
+            const base = $('baseUrl').value.trim();
+            const db = $('database').value.trim();
+            const param = $('paramName').value.trim() || 'dbname';
+            let result = '';
+            if (base && db) {
+                if (base.includes(`${param}=`)) {
+                    result = base.replace(new RegExp(`${param}=[^&]*`), `${param}=${db}`);
+                } else if (base.includes('{db}')) {
+                    result = base.replace('{db}', db);
+                } else {
+                    const sep = base.includes('?') ? '&' : '?';
+                    result = `${base}${sep}${param}=${db}`;
+                }
+            } else if (base) {
+                result = base;
+            }
+            $('finalUrl').textContent = result || '(enter base URL and database)';
+        }
+
+        ['baseUrl', 'database', 'paramName'].forEach(id => {
+            $(id).addEventListener('input', updateFinalUrl);
+        });
+
+        // Make final URL editable
+        $('finalUrl').addEventListener('blur', function() {
+            // Could parse back to fields if needed
+        });
+
+        function toggleAdvanced() {
+            const toggle = $('advancedToggle');
+            const content = $('advancedContent');
+            const expanded = toggle.getAttribute('aria-expanded') === 'true';
+            toggle.setAttribute('aria-expanded', !expanded);
+            content.classList.toggle('visible', !expanded);
+        }
+
+        function loadConfigs() {
+            fetch('/api/configs')
+                .then(r => r.json())
+                .then(data => {
+                    const select = $('configSelect');
+                    const list = $('configSwitcherList');
+                    select.innerHTML = '<option value="">Select a saved configuration...</option>';
+                    list.innerHTML = '';
+
+                    data.configs.forEach(cfg => {
+                        // Select dropdown
+                        const opt = document.createElement('option');
+                        opt.value = cfg.id;
+                        opt.textContent = cfg.name + (cfg.is_current ? ' (current)' : '');
+                        select.appendChild(opt);
+
+                        // Switcher modal list
+                        const item = document.createElement('div');
+                        item.style.cssText = 'padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: all var(--transition);';
+                        item.innerHTML = `
+                            <div>
+                                <div style="font-weight: 500;">${escapeHtml(cfg.name)}</div>
+                                <div style="font-size: 11px; color: var(--text-muted);">${escapeHtml(cfg.api_base_url)} | DB: ${escapeHtml(cfg.database)} | ${cfg.record_count} records</div>
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                ${cfg.is_current ? '<span style="font-size: 11px; color: var(--success);">● Active</span>' : ''}
+                                <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); switchConfig('${cfg.id}')">Switch</button>
+                                <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation(); deleteConfig('${cfg.id}', '${escapeHtml(cfg.name)}')">Delete</button>
+                            </div>
+                        `;
+                        item.onclick = () => switchConfig(cfg.id);
+                        list.appendChild(item);
+                    });
+
+                    if (data.configs.length > 1) {
+                        $('configSwitcher').style.display = 'flex';
+                    }
+
+                    // Set current in select
+                    const current = data.configs.find(c => c.is_current);
+                    if (current) {
+                        select.value = current.id;
+                        state.currentConfigId = current.id;
+                    }
+                });
+        }
+
+        function showNewConfigForm() {
+            closeModal(null, 'modalConfigSwitcher');
+            // Reset form
+            $('settingsForm').reset();
+            $('configName').value = '';
+            updateFinalUrl();
+            showScreen('settings');
+        }
+
+        async function switchConfig(configId) {
+            if (!configId) return;
+            closeModal(null, 'modalConfigSwitcher');
+            showToast('Switching configuration...', 'info');
+            const res = await fetch('/api/config/switch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ config_id: configId })
+            });
+            const data = await res.json();
+            if (data.success) {
+                state.currentConfigId = configId;
+                loadConfigs();
+                await loadWelcomeData();
+                showScreen('welcome');
+            } else {
+                showToast(data.error || 'Failed to switch', 'error');
+            }
+        }
+
+        async function deleteConfig(configId, name) {
+            if (!confirm(`Delete "${name}"?`)) return;
+            const res = await fetch(`/api/config/${configId}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                showToast('Configuration deleted', 'success');
+                loadConfigs();
+            } else {
+                showToast(data.error || 'Failed to delete', 'error');
+            }
+        }
+
+        async function testConnection() {
+            const payload = {
+                base_url: $('baseUrl').value.trim(),
+                database: $('database').value.trim(),
+                param_name: $('paramName').value.trim() || 'dbname',
+                api_key_header: $('apiKeyHeader').value.trim() || 'X-API-Key',
+                api_key_prefix: $('apiKeyPrefix').value,
+                timeout: parseInt($('timeout').value) || 30
+            };
+
+            if (!payload.base_url || !payload.database) {
+                showToast('Base URL and Database are required', 'error');
+                return;
+            }
+
+            showToast('Testing connection...', 'info');
+            try {
+                const res = await fetch('/api/config/test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                let data;
+                try {
+                    data = await res.json();
+                } catch {
+                    data = { success: false, error: `Connection test failed: server returned HTTP ${res.status} without valid JSON` };
+                }
+                if (!res.ok && !data.error) {
+                    data.error = `Connection test failed (HTTP ${res.status}): ${data.detail || res.statusText}`;
+                }
+                showTestModal(data);
+            } catch (error) {
+                showTestModal({ success: false, error: `Could not reach the application server: ${error.message}` });
+            }
+        }
+
+        function showTestModal(data) {
+            const body = $('modalTestBody');
+            if (data.success) {
+                body.innerHTML = `
+                    <div class="test-result success">
+                        <div class="row"><span class="label">Status</span><span class="value">✓ Connected (HTTP ${data.status_code})</span></div>
+                        <div class="row"><span class="label">Records</span><span class="value">${data.record_count.toLocaleString()}</span></div>
+                        <div class="row"><span class="label">Columns</span><span class="value">${data.columns.length}</span></div>
+                        <div class="row"><span class="label">Date Range</span><span class="value">${formatDate(data.date_range.min)} to ${formatDate(data.date_range.max)}</span></div>
+                        <div class="row"><span class="label">Response Shape</span><span class="value">${escapeHtml(data.response_shape || 'array')}</span></div>
+                        <div class="row"><span class="label">Final URL</span><span class="value" style="font-size: 11px; max-width: 300px; word-break: break-all;">${escapeHtml(data.final_url)}</span></div>
+                        <div class="columns">${data.columns.map(c => `<span class="column-tag">${escapeHtml(c)}</span>`).join('')}</div>
+                        ${data.sample_rows && data.sample_rows.length > 0 ? `
+                            <table class="sample-table">
+                                <thead><tr>${data.columns.map(c => `<th>${escapeHtml(c)}</th>`).join('')}</tr></thead>
+                                <tbody>${data.sample_rows.map(row => `<tr>${data.columns.map(c => `<td>${escapeHtml(String(row[c] ?? ''))}</td>`).join('')}</tr>`).join('')}</tbody>
+                            </table>
+                        ` : ''}
+                    </div>
+                `;
+            } else {
+                body.innerHTML = `
+                    <div class="test-result error">
+                        <div class="row"><span class="label" style="color: var(--error);">Error</span><span class="value">${escapeHtml(data.error)}</span></div>
+                        ${data.response_shape ? `<div class="row"><span class="label">Response Shape</span><span class="value">${escapeHtml(data.response_shape)}</span></div>` : ''}
+                        ${data.final_url ? `<div class="row"><span class="label">Final URL</span><span class="value" style="font-size: 11px; max-width: 300px; word-break: break-all;">${escapeHtml(data.final_url)}</span></div>` : ''}
+                    </div>
+                `;
+            }
+            $('modalTest').classList.add('visible');
+        }
+
+        async function saveSettings(e) {
+            e.preventDefault();
+            const payload = {
+                base_url: $('baseUrl').value.trim(),
+                database: $('database').value.trim(),
+                param_name: $('paramName').value.trim() || 'dbname',
+                api_key_header: $('apiKeyHeader').value.trim() || 'X-API-Key',
+                api_key_prefix: $('apiKeyPrefix').value,
+                timeout: parseInt($('timeout').value) || 30,
+                openai_model: $('openaiModel').value,
+                openai_base: $('openaiBase').value.trim() || 'https://api.openai.com/v1',
+                name: $('configName').value.trim()
+            };
+
+            if (!payload.base_url || !payload.database) {
+                showToast('Base URL and Database are required', 'error');
+                return;
+            }
+
+            showToast('Saving and loading data...', 'info');
+            let res;
+            try {
+                res = await fetch('/api/config/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } catch (error) {
+                console.error('Failed to reach the application server:', error);
+                showToast(`Could not reach the application server: ${error.message}`, 'error');
+                return;
+            }
+
+            let data;
+            try {
+                data = await res.json();
+            } catch (error) {
+                console.error('Application server returned invalid JSON:', error);
+                showToast(`Save failed: server returned HTTP ${res.status} without valid JSON`, 'error');
+                return;
+            }
+            if (!res.ok) {
+                showToast(`Save failed (HTTP ${res.status}): ${data?.detail || data?.error || res.statusText}`, 'error');
+                return;
+            }
+            if (!data || typeof data !== 'object') {
+                showToast('Save failed: server returned an invalid response', 'error');
+                return;
+            }
+
+            const loadResult = data.load_result;
+            if (data.success && loadResult?.success) {
+                state.currentConfigId = data.config_id;
+                const recordCount = Number(loadResult.record_count || 0).toLocaleString();
+                $('configSaveResult').textContent = `Saved and loaded ${recordCount} records.`;
+                showToast('Configuration saved and data loaded', 'success');
+                loadConfigs();
+                await loadWelcomeData();
+                showScreen('welcome');
+            } else {
+                const loadError = loadResult?.error;
+                const message = loadError
+                    ? `Configuration was saved, but data could not load: ${loadError}`
+                    : (data.error || 'Save failed');
+                $('configSaveResult').textContent = message;
+                showToast(message, 'error');
+            }
+        }
+
+        $('settingsForm').addEventListener('submit', saveSettings);
+
+        // ============================================================
+        // Welcome Screen
+        // ============================================================
+        async function loadWelcomeData() {
+            try {
+                const res = await fetch('/api/data/summary');
+                if (!res.ok) throw new Error(`HTTP ${res.status} ${res.statusText}`);
+                const data = await res.json();
+                if (data.error) {
+                    showToast(data.error, 'error');
+                    return;
+                }
+
+                $('welcomeCompanyName').textContent = data.company_name;
+                $('chatCompanyName').textContent = data.company_name;
+
+                // Stats
+                const statsHtml = [
+                    { label: 'Records', value: data.record_count.toLocaleString() },
+                    { label: 'Date Range', value: `${formatDate(data.date_range.min)} – ${formatDate(data.date_range.max)}` },
+                    { label: 'Parties', value: data.distinct_parties.toLocaleString() },
+                    { label: 'Groups', value: data.distinct_groups.toLocaleString() },
+                    { label: 'Sources', value: data.distinct_sources.toLocaleString() },
+                    { label: 'Categories', value: data.distinct_categories.toLocaleString() }
+                ].map(s => `
+                    <div class="stat-card">
+                        <div class="value">${s.value}</div>
+                        <div class="label">${s.label}</div>
+                    </div>
+                `).join('');
+                $('statsGrid').innerHTML = statsHtml;
+
+                // Summary
+                $('dataSummary').textContent = data.summary;
+
+                // Questions
+                $('questionsList').innerHTML = data.suggested_questions.map(q => `
+                    <div class="question-item" onclick="setChatInput('${escapeHtml(q).replace(/'/g, "\\'")}')">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        ${escapeHtml(q)}
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load welcome data:', error);
+                showToast(`Could not load the welcome summary: ${error.message}`, 'error');
+            }
+        }
+
+        function setChatInput(text) {
+            $('chatInput').value = text;
+            $('chatInput').focus();
+        }
+
+        // Additive helper: focus chat answers on a specific ledger/party (GlDesc).
+        // setChatGlDesc('Dhiraj Prasad Chaudhari - BRJ Staff') to enable, setChatGlDesc('') to clear.
+        function setChatGlDesc(glDesc) {
+            state.currentGlDesc = (glDesc || '').trim();
+            return state.currentGlDesc;
+        }
+
+        function goToChat() {
+            state.sessionId = '';
+            state.asOfDate = new Date().toISOString().split('T')[0];
+            $('asOfDate').value = state.asOfDate;
+            $('chatMessages').innerHTML = `
+                <div class="empty-state" id="emptyState">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <h3>Start a conversation</h3>
+                    <p>Ask anything about your company data — balances, statements, trends, comparisons, financial reports, and more.</p>
+                </div>
+            `;
+            showScreen('chat');
+            loadChatSuggestions();
+        }
+
+        // Additive: suggested-questions list inside chat panel; click karke poochho.
+        async function loadChatSuggestions() {
+            try {
+                const res = await fetch('/api/data/summary' + (state.currentConfigId ? '?config_id=' + encodeURIComponent(state.currentConfigId) : ''));
+                const data = await res.json();
+                renderChatSuggestions(data.suggested_questions || []);
+            } catch (err) {
+                renderChatSuggestions([]);
+            }
+        }
+
+        function renderChatSuggestions(questions) {
+            const el = $('chatSuggestions');
+            if (!el) return;
+            if (!questions || !questions.length) { el.innerHTML = ''; return; }
+            el.innerHTML = '<span class="chip-label">Suggested:</span>' + questions.map(q =>
+                `<button class="chip" title="${escapeHtml(q)}" onclick="askSuggestedQuestion(this.dataset.q)" data-q="${escapeHtml(q)}">${escapeHtml(q)}</button>`
+            ).join('');
+        }
+
+        function askSuggestedQuestion(q) {
+            if (!q) return;
+            setChatInput(q);
+            sendMessage();
+        }
+
+        // ============================================================
+        // Chat Screen
+        // ============================================================
+        function updateAsOfDate() {
+            state.asOfDate = $('asOfDate').value;
+        }
+
+        async function refreshData() {
+            showToast('Refreshing data...', 'info');
+            const res = await fetch('/api/config/refresh', { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+                showToast('Data refreshed', 'success');
+                await loadWelcomeData();
+                // Reload chat if needed
+            } else {
+                showToast(data.load_result?.error || 'Refresh failed', 'error');
+            }
+        }
+
+        function newChat() {
+            loadChatSuggestions();
+            state.sessionId = '';
+            $('chatMessages').innerHTML = `
+                <div class="empty-state" id="emptyState">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <h3>Start a conversation</h3>
+                    <p>Ask anything about your company data — balances, statements, trends, comparisons, financial reports, and more.</p>
+                </div>
+            `;
+            $('chatInput').value = '';
+            $('chatInput').focus();
+        }
+
+        function showConfigSwitcher() {
+            loadConfigs();
+            $('modalConfigSwitcher').classList.add('visible');
+        }
+
+        function addNewConfigFromSwitcher() {
+            closeModal(null, 'modalConfigSwitcher');
+            showNewConfigForm();
+        }
+
+        // ============================================================
+        // Chat Messaging
+        // ============================================================
+        function handleInputKeydown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const input = $('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            // Remove empty state
+            const emptyState = $('emptyState');
+            if (emptyState) emptyState.remove();
+
+            // Add user message
+            addMessage('user', message);
+            input.value = '';
+            input.style.height = 'auto';
+
+            // Show typing indicator
+            const typingId = showTyping();
+
+            // Additive: detect ledger/party name (GlDesc) — explicit setting wins,
+            // otherwise pick it up from a pasted voucher JSON containing "GlDesc".
+            let glDesc = (state.currentGlDesc || '').trim();
+            if (!glDesc) {
+                const m = message.match(/"GlDesc"\s*:\s*"([^"]+)"/i);
+                if (m) glDesc = m[1].trim();
+            }
+
+            try {
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message,
+                        session_id: state.sessionId,
+                        config_id: state.currentConfigId,
+                        as_of_date: state.asOfDate,
+                        gl_desc: glDesc
+                    })
+                });
+                const data = await res.json();
+
+                hideTyping(typingId);
+
+                if (data.error) {
+                    addMessage('assistant', `Error: ${data.error}`);
+                    showToast(data.error, 'error');
+                } else {
+                    state.sessionId = data.session_id;
+                    addMessage('assistant', data.answer);
+                }
+            } catch (err) {
+                hideTyping(typingId);
+                addMessage('assistant', 'Connection error. Please try again.');
+                showToast('Connection error', 'error');
+            }
+
+            input.focus();
+        }
+
+        function addMessage(role, content) {
+            const container = $('chatMessages');
+            const div = document.createElement('div');
+            div.className = `message ${role}`;
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+            // Render markdown-like content
+            const rendered = renderMarkdown(content);
+
+            div.innerHTML = `
+                <div class="avatar">${role === 'user' ? '👤' : '🤖'}</div>
+                <div class="content">
+                    <div class="meta">${role === 'user' ? 'You' : 'Assistant'} · ${time}</div>
+                    <div class="text">${rendered}</div>
+                    <div class="message-actions" role="menu" aria-label="Message actions">
+                        ${role === 'assistant' ? `
+                            <button class="btn btn-ghost btn-sm" onclick="exportLastTable()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Export</button>
+                            <button class="btn btn-ghost btn-sm" onclick="copyMessage(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy</button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+
+            // Make tables sortable
+            div.querySelectorAll('table').forEach(makeTableSortable);
+        }
+
+        function showTyping() {
+            const container = $('chatMessages');
+            const div = document.createElement('div');
+            const id = 'typing-' + Date.now();
+            div.id = id;
+            div.className = 'message assistant';
+            div.innerHTML = `
+                <div class="avatar">🤖</div>
+                <div class="content">
+                    <div class="typing-indicator">
+                        <span class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>
+                        <span>Thinking...</span>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return id;
+        }
+
+        function hideTyping(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        // ============================================================
+        // Markdown Rendering
+        // ============================================================
+        function renderMarkdown(text) {
+            if (!text) return '';
+            let html = escapeHtml(text);
+
+            // Code blocks
+            html = html.replace(/```(\w+)?\n([\s\S]*?)```/g, (_, lang, code) =>
+                `<pre><code class="language-${lang || ''}">${escapeHtml(code.trim())}</code></pre>`
+            );
+
+            // Inline code
+            html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+            // Bold/italic
+            html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+
+            // Headers
+            html = html.replace(/^### (.*$)/gm, '<h3>$1</h3>');
+            html = html.replace(/^## (.*$)/gm, '<h2>$1</h2>');
+            html = html.replace(/^# (.*$)/gm, '<h1>$1</h1>');
+
+            // Links
+            html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>');
+
+            // Blockquotes
+            html = html.replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>');
+
+            // Lists
+            html = html.replace(/^\- (.*$)/gm, '<li>$1</li>');
+            html = html.replace(/^\d+\. (.*$)/gm, '<li>$1</li>');
+            html = html.replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>');
+
+            // Horizontal rule
+            html = html.replace(/^---$/gm, '<hr>');
+
+            // Tables (simple pipe tables)
+            html = html.replace(/\|(.+)\|\n\|([\-\|\s]+)\|\n((?:\|.+\|\n?)+)/g, (_, header, sep, rows) => {
+                const cols = header.split('|').map(c => c.trim()).filter(c => c);
+                const headerHtml = cols.map(c => `<th>${c}</th>`).join('');
+                const rowsHtml = rows.trim().split('\n').map(row => {
+                    const cells = row.split('|').map(c => c.trim()).filter(c => c);
+                    return '<tr>' + cells.map((c, i) => {
+                        const isNum = /^[\d,]+\.?\d*$/.test(c.replace(/,/g, ''));
+                        return `<td class="${isNum ? 'number' : ''}">${c}</td>`;
+                    }).join('') + '</tr>';
+                }).join('');
+                return `<div class="table-wrapper"><div class="table-search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" placeholder="Search table..." oninput="filterTable(this)"></div><table><thead><tr>${headerHtml}</tr></thead><tbody>${rowsHtml}</tbody></table></div>`;
+            });
+
+            // Paragraphs
+            html = html.replace(/\n\n/g, '</p><p>');
+            html = '<p>' + html + '</p>';
+            html = html.replace(/<p><\/p>/g, '');
+            html = html.replace(/<p>(<div|<table|<pre|<blockquote)/g, '$1');
+            html = html.replace(/(<\/div>|<\/table>|<\/pre>|<\/blockquote>)<\/p>/g, '$1');
+
+            return html;
+        }
+
+        function makeTableSortable(table) {
+            const headers = table.querySelectorAll('th');
+            headers.forEach((th, idx) => {
+                th.style.cursor = 'pointer';
+                th.addEventListener('click', () => sortTable(table, idx, th));
+            });
+
+            // Search
+            const searchInput = table.parentElement?.querySelector('.table-search input');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => filterTable(e.target));
+            }
+        }
+
+        function sortTable(table, colIdx, th) {
+            const tbody = table.querySelector('tbody');
+            const rows = Array.from(tbody.querySelectorAll('tr'));
+            const isAsc = th.classList.toggle('sorted-asc');
+            th.classList.toggle('sorted-desc', !isAsc);
+
+            // Remove sort from other headers
+            table.querySelectorAll('th').forEach(h => {
+                if (h !== th) { h.classList.remove('sorted-asc', 'sorted-desc'); }
+            });
+
+            rows.sort((a, b) => {
+                const aVal = a.cells[colIdx]?.textContent.trim() || '';
+                const bVal = b.cells[colIdx]?.textContent.trim() || '';
+                const aNum = parseFloat(aVal.replace(/,/g, ''));
+                const bNum = parseFloat(bVal.replace(/,/g, ''));
+                if (!isNaN(aNum) && !isNaN(bNum)) {
+                    return isAsc ? aNum - bNum : bNum - aNum;
+                }
+                return isAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+            });
+
+            rows.forEach(r => tbody.appendChild(r));
+        }
+
+        function filterTable(input) {
+            const filter = input.value.toLowerCase();
+            const table = input.closest('.table-wrapper')?.querySelector('table');
+            if (!table) return;
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        }
+
+        function copyMessage(btn) {
+            const text = btn.closest('.message').querySelector('.text').innerText;
+            navigator.clipboard.writeText(text);
+            showToast('Copied to clipboard', 'success');
+        }
+
+        // ============================================================
+        // Export
+        // ============================================================
+        function exportLastTable() {
+            // Find last assistant message with table
+            const messages = $('chatMessages').querySelectorAll('.message.assistant');
+            let tableData = null;
+            for (let i = messages.length - 1; i >= 0; i--) {
+                const table = messages[i].querySelector('table');
+                if (table) {
+                    tableData = extractTableData(table);
+                    break;
+                }
+            }
+            if (tableData) {
+                state.lastTableData = tableData;
+                $('modalExport').classList.add('visible');
+            } else {
+                showToast('No table found in recent messages', 'warning');
+            }
+        }
+
+        function extractTableData(table) {
+            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+            const rows = Array.from(table.querySelectorAll('tbody tr')).filter(r => r.style.display !== 'none');
+            return rows.map(row => {
+                const obj = {};
+                Array.from(row.cells).forEach((cell, i) => {
+                    obj[headers[i] || `col${i}`] = cell.textContent.trim();
+                });
+                return obj;
+            });
+        }
+
+        $('exportOptions').addEventListener('click', async (e) => {
+            const option = e.target.closest('.export-option');
+            if (!option || !state.lastTableData) return;
+
+            const format = option.dataset.format;
+            showToast(`Exporting as ${format.toUpperCase()}...`, 'info');
+
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: `__EXPORT__${JSON.stringify({ data: state.lastTableData, format })}`,
+                    session_id: state.sessionId,
+                    config_id: state.currentConfigId
+                })
+            });
+
+            // Actually use the export_table tool directly
+            const toolRes = await fetch('/api/tools/export', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ data: state.lastTableData, format })
+            });
+            const toolData = await toolRes.json();
+
+            if (toolData.success && toolData.data?.content) {
+                const byteChars = atob(toolData.data.content);
+                const byteNumbers = new Array(byteChars.length);
+                for (let i = 0; i < byteChars.length; i++) {
+                    byteNumbers[i] = byteChars.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: getMimeType(format) });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = toolData.data.filename;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast(`Exported as ${format.toUpperCase()}`, 'success');
+            } else {
+                showToast(toolData.error || 'Export failed', 'error');
+            }
+
+            closeModal(null, 'modalExport');
+        });
+
+        function getMimeType(format) {
+            const types = {
+                csv: 'text/csv',
+                xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                pdf: 'application/pdf'
+            };
+            return types[format] || 'application/octet-stream';
+        }
+
+        // ============================================================
+        // Voice Input
+        // ============================================================
+        function toggleVoice() {
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                showToast('Speech recognition not supported in this browser', 'error');
+                return;
+            }
+
+            if (state.isRecording) {
+                stopVoice();
+            } else {
+                startVoice();
+            }
+        }
+
+        function startVoice() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            state.recognition = new SpeechRecognition();
+            state.recognition.lang = 'en-IN';
+            state.recognition.interimResults = true;
+            state.recognition.continuous = true;
+
+            let finalTranscript = '';
+
+            state.recognition.onresult = (event) => {
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+                $('chatInput').value = finalTranscript + interimTranscript;
+                $('chatInput').style.height = 'auto';
+                $('chatInput').style.height = $('chatInput').scrollHeight + 'px';
+            };
+
+            state.recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                if (event.error !== 'no-speech') {
+                    showToast(`Voice error: ${event.error}`, 'error');
+                }
+                stopVoice();
+            };
+
+            state.recognition.onend = () => {
+                stopVoice();
+            };
+
+            state.recognition.start();
+            state.isRecording = true;
+            $('voiceBtn').classList.add('recording');
+            $('voiceBtn').innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>';
+            showToast('Listening...', 'info');
+        }
+
+        function stopVoice() {
+            if (state.recognition) {
+                state.recognition.stop();
+                state.recognition = null;
+            }
+            state.isRecording = false;
+            $('voiceBtn').classList.remove('recording');
+            $('voiceBtn').innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>';
+        }
+
+        // ============================================================
+        // Modals
+        // ============================================================
+        function closeModal(event, modalId) {
+            if (event && event.target !== event.currentTarget) return;
+            $(modalId).classList.remove('visible');
+        }
+
+        // ============================================================
+        // Initialize
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', async () => {
+            applyTheme();
+            loadConfigs();
+
+            // Check if data already loaded
+            const res = await fetch('/api/config/current');
+            const config = await res.json();
+            const api = config.api || {};
+            const openai = config.openai || {};
+            $('baseUrl').value = api.base_url || '';
+            $('database').value = api.database || '';
+            $('paramName').value = api.param_name || 'dbname';
+            $('apiKeyHeader').value = api.api_key_header || 'X-API-Key';
+            $('apiKeyPrefix').value = api.api_key_prefix || '';
+            $('timeout').value = api.timeout || 30;
+            $('configName').value = config.name || '';
+            $('openaiModel').value = openai.model || 'gpt-4o-mini';
+            $('openaiBase').value = openai.base_url || 'https://api.openai.com/v1';
+            updateFinalUrl();
+
+            if (config.record_count > 0) {
+                state.currentConfigId = config.id;
+                showScreen('welcome');
+                await loadWelcomeData();
+            } else if (api.base_url && api.database) {
+                showToast('No company data is loaded yet. Test the API connection, then save again.', 'warning');
+            }
+
+            // Auto-resize textarea
+            $('chatInput').addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 160) + 'px';
+            });
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + K for new chat
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                if (state.currentScreen === 'chat') newChat();
+            }
+            // Escape to close modals
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.visible').forEach(m => m.classList.remove('visible'));
+            }
+        });
+    </script>
+</body>
+</html>

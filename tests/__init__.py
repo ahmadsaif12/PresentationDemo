@@ -1,0 +1,1 @@
+"""Test suite for Chat with Company Data application."""
