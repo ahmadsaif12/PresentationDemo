@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: presentation-demo
+    runtime: python
+    branch: master
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: OPENAI_MODEL
+        value: gpt-4o-mini
+      - key: OPENAI_BASE_URL
+        value: https://api.openai.com/v1
+      - key: DATA_API_KEY_HEADER
+        value: X-API-Key
+      - key: REFRESH_INTERVAL
+        value: "300"
+      - key: ENABLE_LLM_SCHEMA_ANALYSIS
+        value: "false"
+      # Set these secrets in the Render dashboard; do not commit values.
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: DATA_API_URL
+        sync: false
+      - key: DATA_API_KEY
+        sync: false
+      - key: DATA_API_KEY_PREFIX
+        sync: false
