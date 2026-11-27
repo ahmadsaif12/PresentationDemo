@@ -183,16 +183,20 @@ def infer_source_roles(records: list[dict], profile: dict) -> dict:
         # Sample narrations
         narrations = [str(r.get('Narration', r.get('Nar', ''))) for r in source_records[:5] if r.get('Narration') or r.get('Nar')]
 
-        # Heuristic inference
+        # Canonical accounting transaction mapping. Keep screenshot/user-instructed codes exact.
         role = 'other'
         if source_upper in ('OB', 'OPENING', 'OPENING BALANCE', 'OBAL'):
             role = 'opening_balance'
         elif source_upper in ('SB', 'SALES', 'SALE', 'INV', 'INVOICE', 'SI'):
             role = 'sales'
-        elif source_upper in ('CB', 'COLLECTION', 'RECEIPT', 'RECV', 'RCPT', 'CR'):
-            role = 'collection'
-        elif source_upper in ('PB', 'PURCHASE', 'PUR', 'PI', 'PURCHASE INVOICE'):
+        elif source_upper == 'PB' or source_upper in ('PURCHASE', 'PUR', 'PI', 'PURCHASE INVOICE'):
             role = 'purchase'
+        elif source_upper == 'PR' or source_upper in ('PURCHASE RETURN', 'PURCHASE RETURNS', 'PRN'):
+            role = 'purchase_return'
+        elif source_upper == 'SR' or source_upper in ('SALES RETURN', 'SALES RETURNS', 'SRN'):
+            role = 'sales_return'
+        elif source_upper in ('CB', 'COLLECTION', 'RECEIPT', 'RECV', 'RCPT', 'CR'):
+            role = 'cash_bank' if source_upper == 'CB' else 'collection'
         elif source_upper in ('PAY', 'PAYMENT', 'PMT', 'PYMT'):
             role = 'payment'
         elif source_upper in ('JV', 'JOURNAL', 'JRNL', 'JE'):
@@ -201,6 +205,10 @@ def infer_source_roles(records: list[dict], profile: dict) -> dict:
             role = 'credit_note'
         elif source_upper in ('DN', 'DEBIT NOTE', 'DRNOTE'):
             role = 'debit_note'
+        elif source_upper == 'ISB':
+            role = 'branch_transfer'
+        elif source_upper == 'IPB':
+            role = 'branch_received'
         elif dr_total > 0 and cr_total == 0:
             role = 'debit_entry'
         elif cr_total > 0 and dr_total == 0:
@@ -246,7 +254,7 @@ def infer_group_kinds(records: list[dict], profile: dict) -> dict:
 
         if any(kw in group_lower for kw in ['asset', 'current asset', 'fixed asset', 'cash', 'bank', 'debtor', 'receivable', 'inventory', 'stock']):
             kind = 'asset'
-        elif any(kw in group_lower for kw in ['liability', 'current liability', 'creditor', 'payable', 'loan', 'borrowing']):
+        elif any(kw in group_lower for kw in ['liability', 'liabilities', 'current liability', 'current liabilities', 'creditor', 'creditors', 'payable', 'payables', 'loan', 'borrowing']):
             kind = 'liability'
         elif any(kw in group_lower for kw in ['equity', 'capital', 'reserve', 'retained earning', "owner's equity"]):
             kind = 'equity'

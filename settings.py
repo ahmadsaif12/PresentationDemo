@@ -43,7 +43,7 @@ class OpenAISettings(BaseModel):
 class AppSettings(BaseModel):
     """Application-level settings."""
     week_start: str = Field(default="Monday", description="Week start day")
-    aging_slabs: str = Field(default="0-30,31-60,61-90,91-180,181-365,365+", description="Aging slabs for receivables")
+    aging_slabs: str = Field(default="0-30,31-60,61-90,91-120,121-150,151-180,181+", description="Aging slabs for receivables")
     turnover_days: int = Field(default=365, description="Days in year for turnover calculation")
     refresh_interval: int = Field(default=300, description="Auto-refresh interval in seconds")
     max_rows: int = Field(default=200, description="Maximum rows per query")
